@@ -4,6 +4,13 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Raf Admin',
   description: 'Stok Takip Uygulaması',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Raf',
+  },
+  themeColor: '#6ecdf9',
 };
 
 export default function RootLayout({
@@ -12,11 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      {/* Burada önceden <nav> veya <div> içinde "SALE" yazıları vardı.
-         Hepsini sildik, sadece {children} kaldı.
-         {children} demek: O an hangi sayfadaysan (Giriş, Admin vb.) sadece onu göster demek.
-      */}
+    <html lang="tr">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/logo_raf.png" />
+        <meta name="theme-color" content="#6ecdf9" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Raf" />
+      </head>
       <body style={{ margin: 0, padding: 0 }}>
         {children}
       </body>

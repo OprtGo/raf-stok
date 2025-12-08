@@ -1,0 +1,21 @@
+{
+  "name": "Raf Stok",
+  "short_name": "Raf",
+  "description": "Stok yönetim uygulaması",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#6ecdf9",
+  "theme_color": "#6ecdf9",
+  "icons": [
+    {
+      "src": "/logo_raf.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo_raf.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
