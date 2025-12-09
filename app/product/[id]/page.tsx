@@ -201,8 +201,14 @@ const veriyiGetir = () => {
             <h3 style={styles.descTitle}>Açıklama</h3>
             <p style={styles.descText}>{urun.description || "Açıklama yok."}</p>
           </div>
-          <button onClick={handleShare} style={styles.shareBigButton}>
-            {paylasildi ? <><FiCheck size={20}/> Link Kopyalandı!</> : <><FiShare2 size={20}/> Paylaş</>}
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              alert("Link kopyalandı!");
+            }}
+            style={styles.shareBigButton}
+          >
+            <FiShare2 size={20} /> Paylaş & Kopyala
           </button>
         </div>
       </div>

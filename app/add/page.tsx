@@ -172,7 +172,15 @@ export default function AdminDashboard() {
       <div style={styles.header}>
         <div style={styles.headerLeft}>
           <h1 style={styles.brandTitle}>Raf Admin</h1>
-          <button onClick={() => router.push('/')} style={styles.iconButton}><FiLogOut /></button>
+          <button 
+            onClick={() => {
+              localStorage.clear();           // her şeyi temizler
+              window.location.href = '/';      // gerçekten çıkış yapar
+            }}
+            style={styles.iconButton}
+          >
+            <FiLogOut size={24} />
+          </button>
         </div>
         <div style={styles.statsContainer}>
           <div style={styles.statItem}>
