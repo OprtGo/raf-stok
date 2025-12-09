@@ -7,18 +7,18 @@ export default function LoginPage() {
   const router = useRouter();
   const DOGRU_SIFRE = "123456";
 
-  // Sayfa açıldığında localStorage’daki admin durumunu koruyalım
+  // Sayfa açıldığında sessionStorage'daki admin durumunu kontrol et
   useEffect(() => {
-    const adminVar = localStorage.getItem('isAdmin');
+    const adminVar = sessionStorage.getItem('isAdmin');
     if (adminVar === 'true') {
-      router.replace('/add'); // direkt içeri alsın
+      router.replace('/add');
     }
   }, [router]);
 
   const handleGiris = (e: React.FormEvent) => {
-    e.preventDefault(); // sayfanın yenilenmesini engeller
+    e.preventDefault();
     if (sifre === DOGRU_SIFRE) {
-      localStorage.setItem('isAdmin', 'true');
+      sessionStorage.setItem('isAdmin', 'true');
       router.push('/add');
     } else {
       alert("Hatalı şifre! Tekrar dene.");

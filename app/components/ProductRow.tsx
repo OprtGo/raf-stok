@@ -2,6 +2,7 @@
 
 import { motion, PanInfo } from "framer-motion";
 import { Trash2, Image as ImageIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Product {
   id: string;
@@ -9,6 +10,7 @@ interface Product {
   price: number;
   images: string[];
   isSold: boolean;
+  shortCode?: string; // ✅ Kısa kod eklendi
 }
 
 interface ProductRowProps {
@@ -18,6 +20,7 @@ interface ProductRowProps {
 }
 
 export default function ProductRow({ product, onToggleSold, onDelete }: ProductRowProps) {
+  const router = useRouter();
   
   const handleDragEnd = (event: any, info: PanInfo) => {
     if (info.offset.x < -100) {
@@ -28,6 +31,15 @@ export default function ProductRow({ product, onToggleSold, onDelete }: ProductR
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleSold(product.id);
+  };
+
+  const handleCardClick = () => {
+    // shortCode varsa onu kullan, yoksa id'yi kullan
+    if (product.shortCode) {
+      router.push(`/${product.shortCode}`);
+    } else {
+      router.push(`/product/${product.id}`);
+    }
   };
 
   return (
@@ -46,6 +58,7 @@ export default function ProductRow({ product, onToggleSold, onDelete }: ProductR
         dragElastic={0.2}
         whileDrag={{ scale: 1.02 }}
         style={product.isSold ? styles.cardSold : styles.card}
+        onClick={handleCardClick}
       >
         
         {/* CHECKBOX */}
@@ -118,7 +131,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '16px',
-    zIndex: 10
+    zIndex: 10,
+    cursor: 'pointer'
   },
   cardSold: {
     position: 'relative',
@@ -131,7 +145,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     gap: '16px',
     zIndex: 10,
-    opacity: 0.6
+    opacity: 0.6,
+    cursor: 'pointer'
   },
   checkboxWrapper: {
     flexShrink: 0,

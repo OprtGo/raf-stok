@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiSearch, FiLogOut, FiBox, FiX, FiCamera, FiImage } from "react-icons/fi";
-import ProductRow from '../components/ProductRow'; // ✅ Düzeltildi
+import ProductRow from '../components/ProductRow';
 
 // Firebase bağlantıları
 import { storage, db } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, getDocs, orderBy, query, serverTimestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, orderBy, query, where, serverTimestamp, deleteDoc, doc, updateDoc } from "firebase/firestore";
 
 interface Product {
   id: string;
@@ -18,6 +18,7 @@ interface Product {
   warrantyStatus: string;
   description: string;
   isSold: boolean;
+  shortCode?: string;
   createdAt: any;
 }
 
@@ -50,7 +51,8 @@ export default function AdminDashboard() {
     querySnapshot.forEach((doc) => {
       veriListesi.push({ 
         id: doc.id, 
-        isSold: false, // Varsayılan olarak satılmamış
+        isSold: false,
+        shortCode: doc.data().shortCode || '',
         ...doc.data() 
       } as Product);
     });
@@ -78,12 +80,29 @@ export default function AdminDashboard() {
         yuklenenResimLinkleri.push(url);
       }
 
-      // KISA KOD OTOMATİK OLUŞTUR
-      const shortCode = urunAdi
-        .toLowerCase()
-        .replace(/[ıİğĞüÜşŞöÖçÇ]/g, c => "iıgğuuusşoöcc".charAt("ıİğĞüÜşŞöÖçÇ".indexOf(c)))
-        .replace(/[^a-z0-9]/g, "")
-        .slice(0, 10) || Date.now().toString(36).slice(-6);
+      // ✅ GELIŞMIŞ KISA KOD OLUŞTUR (Benzersiz 6 karakter)
+      const generateShortCode = (): string => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // I,O,0,1 yok (karışıklık olmasın)
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+
+      // Benzersiz kod oluştur (varsa yeniden dene)
+      let shortCode = generateShortCode();
+      let isUnique = false;
+      
+      while (!isUnique) {
+        const q = query(collection(db, "products"), where("shortCode", "==", shortCode));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          isUnique = true;
+        } else {
+          shortCode = generateShortCode();
+        }
+      }
 
       await addDoc(collection(db, "products"), {
         name: urunAdi,
@@ -126,7 +145,7 @@ export default function AdminDashboard() {
       await updateDoc(doc(db, "products", id), {
         isSold: !urun.isSold
       });
-      verileriGetir(); // Listeyi yenile
+      verileriGetir();
     } catch (error) {
       console.error("Güncelleme hatası:", error);
       alert("İşaretlenirken hata oluştu.");
@@ -147,15 +166,16 @@ export default function AdminDashboard() {
     }
   };
 
-  const kartaGit = (id: string) => {
-    router.push(`/product/${id}`);
-  };
+const kartaGit = (shortCode?: string) => {
+  if (shortCode) {
+    router.push(`/${shortCode}`);
+  }
+};
 
   // FİLTRELEME VE SIRALAMA
   const filtrelenmisUrunler = urunler
     .filter(urun => urun.name.toLowerCase().includes(aramaMetni.toLowerCase()))
     .sort((a, b) => {
-      // Satılmayanlar önce, satılanlar sonda
       if (a.isSold === b.isSold) return 0;
       return a.isSold ? 1 : -1;
     });
@@ -174,8 +194,8 @@ export default function AdminDashboard() {
           <h1 style={styles.brandTitle}>Raf Admin</h1>
           <button 
             onClick={() => {
-              localStorage.clear();           // her şeyi temizler
-              window.location.href = '/';      // gerçekten çıkış yapar
+              sessionStorage.clear();
+              window.location.href = '/';
             }}
             style={styles.iconButton}
           >
@@ -227,14 +247,15 @@ export default function AdminDashboard() {
          ) : (
            <div style={styles.listContainer}>
              {filtrelenmisUrunler.map((urun) => (
-               <div key={urun.id} onClick={() => kartaGit(urun.id)} style={{cursor: 'pointer'}}>
+              <div key={urun.id} onClick={() => kartaGit(urun.shortCode || urun.id)} style={{cursor: 'pointer'}}>
                  <ProductRow 
                    product={{
                      id: urun.id,
                      name: urun.name,
                      price: urun.price,
                      images: urun.imageUrls || [],
-                     isSold: urun.isSold
+                     isSold: urun.isSold,
+                     shortCode: urun.shortCode || urun.id
                    }}
                    onToggleSold={handleToggleSold}
                    onDelete={handleSil}
