@@ -54,34 +54,45 @@ export default function LoginPage() {
 const styles = {
   container: { 
     minHeight: '100vh', 
-    background: '#000', 
-    color: '#fff', 
+    background: 'linear-gradient(135deg, #00d4ff, #0099cc)', 
     display: 'flex', 
-    flexDirection: 'column' as const, 
+    flexDirection: 'column' as const,
     alignItems: 'center', 
-    justifyContent: 'center' 
+    justifyContent: 'center',
+    padding: 20
   },
-  logoCircle: { width: 120, height: 120, borderRadius: 60, overflow: 'hidden', marginBottom: 40 },
+  logoCircle: { width: 140, height: 140, borderRadius: 70, overflow: 'hidden', marginBottom: 50 },
   logoImage: { width: '100%', height: '100%', objectFit: 'cover' as const },
-  mainTitle: { fontSize: 48, fontWeight: 'bold', marginBottom: 60 },
-  formWrapper: { width: '80%', maxWidth: 340 },
-  input: { 
+  mainTitle: { fontSize: 56, fontWeight: 'bold', marginBottom: 80, color: '#fff', letterSpacing: 4 },
+  formWrapper: { 
     width: '100%', 
-    padding: 20, 
-    fontSize: 24, 
-    textAlign: 'center' as const, 
-    borderRadius: 12, 
-    border: 'none', 
-    marginBottom: 20 
+    maxWidth: 360,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center'
+  },
+  input: { 
+    width: '100%',
+    maxWidth: 320,
+    padding: 22,
+    fontSize: 22,
+    textAlign: 'center' as const,
+    borderRadius: 16,
+    border: 'none',
+    marginBottom: 24,
+    background: 'rgba(255,255,255,0.95)',
+    color: '#000'
   },
   button: { 
-    width: '100%', 
-    padding: 20, 
-    fontSize: 24, 
-    background: '#0066ff', 
-    color: '#fff', 
-    border: 'none', 
-    borderRadius: 12, 
-    cursor: 'pointer' 
+    width: '100%',
+    maxWidth: 320,
+    padding: 22,
+    fontSize: 26,
+    background: '#000',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 16,
+    cursor: 'pointer',
+    fontWeight: 'bold'
   }
 };
