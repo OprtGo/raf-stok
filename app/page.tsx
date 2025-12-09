@@ -5,17 +5,19 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [sifre, setSifre] = useState('');
   const router = useRouter();
-
   const DOGRU_SIFRE = "123456";
 
-  // Sayfa açılınca eski admin kaydı varsa temizle (Güvenlik için)
+  // Sayfa açıldığında localStorage’daki admin durumunu koruyalım
   useEffect(() => {
-    localStorage.removeItem('isAdmin');
-  }, []);
+    const adminVar = localStorage.getItem('isAdmin');
+    if (adminVar === 'true') {
+      router.replace('/add'); // direkt içeri alsın
+    }
+  }, [router]);
 
-  const handleGiris = () => {
+  const handleGiris = (e: React.FormEvent) => {
+    e.preventDefault(); // sayfanın yenilenmesini engeller
     if (sifre === DOGRU_SIFRE) {
-      // Şifre doğruysa "Admin Rozeti" ver
       localStorage.setItem('isAdmin', 'true');
       router.push('/add');
     } else {
@@ -25,18 +27,13 @@ export default function LoginPage() {
 
   return (
     <div style={styles.container}>
-      {/* LOGO DAİRESİ */}
       <div style={styles.logoCircle}>
-        <img 
-          src="/logo_raf.png" 
-          alt="Raf Logo" 
-          style={styles.logoImage}
-        />
+        <img src="/logo_raf.png" alt="Raf Logo" style={styles.logoImage} />
       </div>
 
       <h1 style={styles.mainTitle}>STOK</h1>
 
-      <div style={styles.formWrapper}>
+      <form onSubmit={handleGiris} style={styles.formWrapper}>
         <input
           type="password"
           maxLength={6}
@@ -44,82 +41,47 @@ export default function LoginPage() {
           value={sifre}
           onChange={(e) => setSifre(e.target.value)}
           style={styles.input}
+          autoFocus
         />
-        <button onClick={handleGiris} style={styles.button}>
-          GIRIS
+        <button type="submit" style={styles.button}>
+          GİRİŞ
         </button>
-      </div>
+      </form>
     </div>
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles = {
   container: { 
-    height: '100vh', 
-    width: '100%', 
+    minHeight: '100vh', 
+    background: '#000', 
+    color: '#fff', 
     display: 'flex', 
-    flexDirection: 'column', 
+    flexDirection: 'column' as const, 
     alignItems: 'center', 
-    justifyContent: 'center', 
-    backgroundColor: '#6ecdf9', 
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' 
+    justifyContent: 'center' 
   },
-  logoCircle: { 
-    width: '100px', 
-    height: '100px', 
-    backgroundColor: 'white', 
-    borderRadius: '50%', 
-    display: 'flex', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginBottom: '20px', 
-    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-    overflow: 'hidden'
-  },
-  logoImage: {
-    width: '70px',
-    height: '70px',
-    objectFit: 'contain'
-  },
-  mainTitle: { 
-    color: 'white', 
-    fontSize: '42px', 
-    fontWeight: 'bold', 
-    marginBottom: '40px', 
-    letterSpacing: '1px', 
-    margin: '0 0 40px 0' 
-  },
-  formWrapper: { 
-    width: '100%', 
-    maxWidth: '320px', 
-    display: 'flex', 
-    flexDirection: 'column' 
-  },
+  logoCircle: { width: 120, height: 120, borderRadius: 60, overflow: 'hidden', marginBottom: 40 },
+  logoImage: { width: '100%', height: '100%', objectFit: 'cover' as const },
+  mainTitle: { fontSize: 48, fontWeight: 'bold', marginBottom: 60 },
+  formWrapper: { width: '80%', maxWidth: 340 },
   input: { 
     width: '100%', 
-    padding: '15px', 
-    fontSize: '16px', 
+    padding: 20, 
+    fontSize: 24, 
+    textAlign: 'center' as const, 
+    borderRadius: 12, 
     border: 'none', 
-    backgroundColor: 'white', 
-    color: '#333', 
-    outline: 'none', 
-    textAlign: 'center', 
-    boxSizing: 'border-box', 
-    marginBottom: '15px', 
-    borderRadius: '0' 
+    marginBottom: 20 
   },
   button: { 
     width: '100%', 
-    padding: '15px', 
-    backgroundColor: 'black', 
-    color: 'white', 
+    padding: 20, 
+    fontSize: 24, 
+    background: '#0066ff', 
+    color: '#fff', 
     border: 'none', 
-    fontSize: '14px', 
-    fontWeight: 'bold', 
-    cursor: 'pointer', 
-    letterSpacing: '1px', 
-    boxSizing: 'border-box', 
-    borderRadius: '4px', 
-    boxShadow: '0 4px 10px rgba(0,0,0,0.2)' 
+    borderRadius: 12, 
+    cursor: 'pointer' 
   }
 };

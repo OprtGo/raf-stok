@@ -78,6 +78,13 @@ export default function AdminDashboard() {
         yuklenenResimLinkleri.push(url);
       }
 
+      // KISA KOD OTOMATİK OLUŞTUR
+      const shortCode = urunAdi
+        .toLowerCase()
+        .replace(/[ıİğĞüÜşŞöÖçÇ]/g, c => "iıgğuuusşoöcc".charAt("ıİğĞüÜşŞöÖçÇ".indexOf(c)))
+        .replace(/[^a-z0-9]/g, "")
+        .slice(0, 10) || Date.now().toString(36).slice(-6);
+
       await addDoc(collection(db, "products"), {
         name: urunAdi,
         price: Number(fiyat),
@@ -87,6 +94,7 @@ export default function AdminDashboard() {
         imageUrls: yuklenenResimLinkleri,
         isSold: false,
         createdAt: serverTimestamp(),
+        shortCode: shortCode
       });
 
       alert("✅ Ürün Başarıyla Eklendi!");
