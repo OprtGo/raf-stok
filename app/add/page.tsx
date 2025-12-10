@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiSearch, FiLogOut, FiBox, FiX, FiCamera, FiImage } from "react-icons/fi";
+import { FiSearch, FiLogOut, FiBox, FiX, FiCamera, FiImage, FiTrash2 } from "react-icons/fi";
 import ProductRow from '../components/ProductRow';
 
 // Firebase bağlantıları
@@ -29,7 +29,9 @@ export default function AdminDashboard() {
   const [modalAcik, setModalAcik] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(false);
   const [urunler, setUrunler] = useState<Product[]>([]);
+  const [silinenUrunler, setSilinenUrunler] = useState<Product[]>([]);
   const [aramaMetni, setAramaMetni] = useState("");
+  const [copKutusuAcik, setCopKutusuAcik] = useState(false);
   
   // Form Bilgileri
   const [urunAdi, setUrunAdi] = useState("");
@@ -48,15 +50,24 @@ export default function AdminDashboard() {
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
     const veriListesi: Product[] = [];
+    const silinenListe: Product[] = [];
     querySnapshot.forEach((doc) => {
-      veriListesi.push({ 
+      const data = doc.data();
+      const urun = { 
         id: doc.id, 
         isSold: false,
-        shortCode: doc.data().shortCode || '',
-        ...doc.data() 
-      } as Product);
+        shortCode: data.shortCode || '',
+        ...data 
+      } as Product;
+      
+      if (data.deleted) {
+        silinenListe.push(urun);
+      } else {
+        veriListesi.push(urun);
+      }
     });
     setUrunler(veriListesi);
+    setSilinenUrunler(silinenListe);
   };
 
   const handleDosyaSec = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,17 +163,31 @@ export default function AdminDashboard() {
     }
   };
 
-  // SWIPE DELETE
+  // SWIPE DELETE (Soft Delete - Çöp Kutusuna Gönder)
   const handleSil = async (id: string) => {
-    if (confirm("Bu ürünü silmek istediğine emin misin?")) {
-      try {
-        await deleteDoc(doc(db, "products", id));
-        alert("🗑️ Ürün silindi.");
-        verileriGetir();
-      } catch (error) {
-        console.error("Silme hatası:", error);
-        alert("Silinirken hata oluştu.");
-      }
+    try {
+      await updateDoc(doc(db, "products", id), {
+        deleted: true,
+        deletedAt: serverTimestamp()
+      });
+      verileriGetir();
+    } catch (error) {
+      console.error("Silme hatası:", error);
+      alert("Silinirken hata oluştu.");
+    }
+  };
+
+  // SİLİNEN ÜRÜNÜ GERİ GETİR
+  const handleGeriGetir = async (id: string) => {
+    try {
+      await updateDoc(doc(db, "products", id), {
+        deleted: false,
+        deletedAt: null
+      });
+      verileriGetir();
+    } catch (error) {
+      console.error("Geri getirme hatası:", error);
+      alert("Geri getirirken hata oluştu.");
     }
   };
 
@@ -185,13 +210,21 @@ const kartaGit = (shortCode?: string) => {
   const raftakiUrun = urunler.filter(u => !u.isSold).length;
   const satilanUrun = urunler.filter(u => u.isSold).length;
 
+  // Formatlama fonksiyonu (3.433 formatı)
+  const formatNumber = (num: number): string => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   return (
     <div style={styles.container}>
       
       {/* HEADER */}
       <div style={styles.header}>
         <div style={styles.headerLeft}>
-          <h1 style={styles.brandTitle}>Raf Admin</h1>
+          <div style={styles.logoContainer}>
+            <img src="/logo_raf.png" alt="Logo" style={styles.headerLogo} />
+            <h1 style={styles.brandTitle}>STOK</h1>
+          </div>
           <button 
             onClick={() => {
               sessionStorage.clear();
@@ -204,15 +237,15 @@ const kartaGit = (shortCode?: string) => {
         </div>
         <div style={styles.statsContainer}>
           <div style={styles.statItem}>
-            <span style={styles.statNumber}>{toplamUrun}</span>
+            <span style={styles.statNumber}>{formatNumber(toplamUrun)}</span>
             <span style={styles.statLabel}>TOPLAM</span>
           </div>
           <div style={styles.statItem}>
-            <span style={styles.statNumber}>{raftakiUrun}</span>
+            <span style={styles.statNumber}>{formatNumber(raftakiUrun)}</span>
             <span style={styles.statLabel}>RAFTA</span>
           </div>
           <div style={styles.statItem}>
-            <span style={styles.statNumber}>{satilanUrun}</span>
+            <span style={styles.statNumber}>{formatNumber(satilanUrun)}</span>
             <span style={styles.statLabel}>SATILDI</span>
           </div>
         </div>
@@ -230,9 +263,22 @@ const kartaGit = (shortCode?: string) => {
                onChange={(e) => setAramaMetni(e.target.value)}
              />
         </div>
-        <button onClick={() => setModalAcik(true)} style={styles.addButton}>
-          + Ürün Ekle
-        </button>
+        <div style={{display: 'flex', gap: '10px'}}>
+          {silinenUrunler.length > 0 && (
+            <button 
+              onClick={() => setCopKutusuAcik(!copKutusuAcik)} 
+              style={{
+                ...styles.addButton,
+                backgroundColor: copKutusuAcik ? '#EF4444' : '#6B7280'
+              }}
+            >
+              <FiTrash2 size={18} /> {silinenUrunler.length}
+            </button>
+          )}
+          <button onClick={() => setModalAcik(true)} style={styles.addButton}>
+            + Ürün Ekle
+          </button>
+        </div>
       </div>
 
       {/* LISTE - PRODUCTROW COMPONENT KULLANIMI */}
@@ -265,6 +311,44 @@ const kartaGit = (shortCode?: string) => {
            </div>
          )}
       </div>
+
+      {/* ÇÖP KUTUSU - SİLİNEN ÜRÜNLER */}
+      {copKutusuAcik && silinenUrunler.length > 0 && (
+        <div style={styles.copKutusuSection}>
+          <div style={styles.copKutusuHeader}>
+            <h3 style={styles.copKutusuTitle}>Çöp Kutusu ({silinenUrunler.length})</h3>
+            <button onClick={() => setCopKutusuAcik(false)} style={styles.closeButton}>
+              <FiX />
+            </button>
+          </div>
+          <div style={styles.listContainer}>
+            {silinenUrunler.map((urun) => (
+              <div key={urun.id} style={styles.copKutusuItem}>
+                <div style={styles.copKutusuItemContent}>
+                  {urun.imageUrls && urun.imageUrls.length > 0 && (
+                    <img src={urun.imageUrls[0]} alt={urun.name} style={styles.copKutusuImage} />
+                  )}
+                  <div style={{flex: 1}}>
+                    <h4 style={styles.copKutusuItemName}>{urun.name}</h4>
+                    <p style={styles.copKutusuItemPrice}>
+                      {new Intl.NumberFormat('tr-TR', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                      }).format(urun.price || 0)}₺
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleGeriGetir(urun.id)} 
+                  style={styles.geriGetirButton}
+                >
+                  Geri Getir
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* MODAL */}
       {modalAcik && (
@@ -379,6 +463,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex', 
     alignItems: 'center', 
     gap: '15px' 
+  },
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
+  },
+  headerLogo: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '8px',
+    objectFit: 'cover'
   },
   brandTitle: { 
     fontSize: '20px', 
@@ -549,5 +644,68 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer', 
     backgroundColor: '#F3F4F6', 
     color: '#4B5563' 
+  },
+  copKutusuSection: {
+    marginTop: '30px',
+    padding: '20px',
+    backgroundColor: '#F9FAFB',
+    borderRadius: '12px',
+    border: '1px solid #E5E7EB'
+  },
+  copKutusuHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '15px'
+  },
+  copKutusuTitle: {
+    fontSize: '18px',
+    fontWeight: 'bold',
+    color: '#1F2937',
+    margin: 0
+  },
+  copKutusuItem: {
+    backgroundColor: 'white',
+    padding: '15px',
+    borderRadius: '8px',
+    marginBottom: '10px',
+    border: '1px solid #E5E7EB',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '15px'
+  },
+  copKutusuItemContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '15px',
+    flex: 1
+  },
+  copKutusuImage: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '6px',
+    objectFit: 'cover'
+  },
+  copKutusuItemName: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#1F2937',
+    margin: '0 0 4px 0'
+  },
+  copKutusuItemPrice: {
+    fontSize: '14px',
+    color: '#6B7280',
+    margin: 0
+  },
+  geriGetirButton: {
+    padding: '8px 16px',
+    backgroundColor: '#10B981',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer'
   }
 };

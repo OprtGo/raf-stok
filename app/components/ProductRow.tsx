@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, PanInfo } from "framer-motion";
+import React, { useState } from "react";
 import { Trash2, Image as ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -21,12 +21,7 @@ interface ProductRowProps {
 
 export default function ProductRow({ product, onToggleSold, onDelete }: ProductRowProps) {
   const router = useRouter();
-  
-  const handleDragEnd = (event: any, info: PanInfo) => {
-    if (info.offset.x < -100) {
-      onDelete(product.id);
-    }
-  };
+  const [deleteHover, setDeleteHover] = useState(false);
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -42,21 +37,17 @@ export default function ProductRow({ product, onToggleSold, onDelete }: ProductR
     }
   };
 
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Bu ürünü silmek istediğine emin misin?")) {
+      onDelete(product.id);
+    }
+  };
+
   return (
     <div style={styles.wrapper}>
-      
-      {/* Kırmızı Çöp Kutusu Arka Planı */}
-      <div style={styles.deleteBackground}>
-        <Trash2 style={{color: '#EF4444', width: '24px', height: '24px'}} />
-      </div>
-
       {/* Ürün Kartı */}
-      <motion.div
-        drag="x"
-        dragConstraints={{ left: -150, right: 0 }} 
-        onDragEnd={handleDragEnd}
-        dragElastic={0.2}
-        whileDrag={{ scale: 1.02 }}
+      <div
         style={product.isSold ? styles.cardSold : styles.card}
         onClick={handleCardClick}
       >
@@ -90,14 +81,29 @@ export default function ProductRow({ product, onToggleSold, onDelete }: ProductR
             {product.name}
           </h3>
           <p style={styles.price}>
-            {new Intl.NumberFormat('tr-TR', { 
-              style: 'currency', 
-              currency: 'TRY' 
-            }).format(product.price || 0)}
+            {new Intl.NumberFormat('tr-TR', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(product.price || 0)}₺
           </p>
         </div>
 
-      </motion.div>
+        {/* Çöp Kutusu Butonu - Tüm ürünlerde görünür */}
+        <button
+          onClick={handleDeleteClick}
+          onMouseEnter={() => setDeleteHover(true)}
+          onMouseLeave={() => setDeleteHover(false)}
+          style={{
+            ...styles.deleteButton,
+            backgroundColor: deleteHover ? '#F3F4F6' : 'transparent',
+            opacity: product.isSold ? 0.5 : 1
+          }}
+          type="button"
+        >
+          <Trash2 size={18} />
+        </button>
+
+      </div>
     </div>
   );
 }
@@ -105,21 +111,7 @@ export default function ProductRow({ product, onToggleSold, onDelete }: ProductR
 const styles: { [key: string]: React.CSSProperties } = {
   wrapper: {
     position: 'relative',
-    marginBottom: '12px',
-    overflow: 'hidden'
-  },
-  deleteBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#FEE2E2',
-    borderRadius: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingRight: '24px'
+    marginBottom: '12px'
   },
   card: {
     position: 'relative',
@@ -202,5 +194,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#2563EB',
     fontWeight: 'bold',
     margin: 0
+  },
+  deleteButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#000000',
+    borderRadius: '6px',
+    flexShrink: 0,
+    transition: 'background-color 0.2s'
   }
 };

@@ -173,15 +173,19 @@ useEffect(() => {
       
       {/* HEADER */}
       <div style={styles.header}>
-        <button onClick={() => router.push('/add')} style={styles.iconButton}>
-          <FiArrowLeft size={24} />
-        </button>
+        {isAdmin && (
+          <button onClick={() => router.push('/add')} style={styles.iconButton}>
+            <FiArrowLeft size={24} />
+          </button>
+        )}
+        {!isAdmin && <div style={{width: '24px'}} />}
         <h1 style={styles.headerTitle}>Ürün Detay</h1>
         {isAdmin && (
           <button onClick={() => setEditModu(true)} style={styles.editButton}>
             <FiEdit3 size={16} /> Düzenle
           </button>
         )}
+        {!isAdmin && <div style={{width: '80px'}} />}
       </div>
 
       {/* CARD */}
@@ -217,7 +221,12 @@ useEffect(() => {
         {/* BİLGİLER */}
         <div style={styles.infoSection}>
           <h2 style={styles.title}>{urun.name}</h2>
-          <div style={styles.priceBox}>{urun.price}₺</div>
+          <div style={styles.priceBox}>
+            {new Intl.NumberFormat('tr-TR', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(urun.price || 0)}₺
+          </div>
           
           <div style={styles.specList}>
             <div style={styles.specRow}>

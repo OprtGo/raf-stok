@@ -63,7 +63,16 @@ const styles = {
   },
   logoCircle: { width: 140, height: 140, borderRadius: 70, overflow: 'hidden', marginBottom: 50 },
   logoImage: { width: '100%', height: '100%', objectFit: 'cover' as const },
-  mainTitle: { fontSize: 56, fontWeight: 'bold', marginBottom: 80, color: '#fff', letterSpacing: 4 },
+  mainTitle: { 
+    fontSize: 64, 
+    fontWeight: '900', 
+    marginBottom: 80, 
+    color: '#FFFFFF', 
+    letterSpacing: 8,
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+    textTransform: 'uppercase'
+  },
   formWrapper: { 
     width: '100%', 
     maxWidth: 360,
