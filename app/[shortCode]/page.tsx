@@ -145,16 +145,30 @@ useEffect(() => {
   };
 
   const handleShare = async () => {
+    const formattedPrice = new Intl.NumberFormat('tr-TR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(urun.price || 0);
+    
+    const shareUrl = window.location.href;
+    // Text içinde URL'yi de ekle, böylece mobil uygulamalar düzgün açabilir
+    const shareText = `${urun.name} ${formattedPrice}₺\n\n${shareUrl}`;
+    
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Raf Ürün',
-          text: `${urun.name} - ${urun.price}₺`,
-          url: window.location.href
+          title: urun.name,
+          text: shareText,
+          url: shareUrl
         });
-      } catch (err) {}
+        setPaylasildi(true);
+        setTimeout(() => setPaylasildi(false), 2000);
+      } catch (err) {
+        // Kullanıcı paylaşmayı iptal ettiyse hata verme
+      }
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      // Fallback: Sadece linki kopyala
+      navigator.clipboard.writeText(shareUrl);
       setPaylasildi(true);
       setTimeout(() => setPaylasildi(false), 2000);
     }
